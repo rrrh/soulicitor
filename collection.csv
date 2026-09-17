@@ -1,3 +1,4 @@
 record_id,record_type,record_title,track_id,artist,track_title,bpm,style,runtime,rating,comment
 1,"12""","New 12""",1,Fugu,Da Fink,111,Other,05:28,2,An absolute classic.
-11,"12""",figaro2,11,bluna,tina,180,House,22,5,Nonsense
+4,"12""",Woke up this Morning,4,Hendrix,Uranus Rock,,Rock,2:45,5,Test Entry
+11,"12""",figaro,11,bluna,tina,180,House,22,5,Nonsense
