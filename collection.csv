@@ -7,5 +7,6 @@ record_id,record_type,record_title,track_id,artist,track_title,bpm,style,runtime
 6,"12""","New 12""",6,Hamster,Firefly,61,Disco,5:00,1,Stinkt
 7,"7""",,7,Huga,Do You Wanna Do A Thing,80,Ambient,0:00,3,TEST
 8,"12""",Woke up this Morning,8,Hendrix,Uranus Rock,,Rock,2:45,5,Test Entry
-10,"7""",,9,Znii Bey,Ore Oluwa akari,,Other,10:03,3,
-11,"12""",tuna,10,bluna,tina,180,House,10:00,5,Nonsense
+9,"7""",,9,Znii Bey,Ore Oluwa akari,,Other,10:03,3,
+10,"7""",,10,Znii Bey,Ore Oluwa akari,,Other,10:03,3,
+11,"12""",tuna,11,bluna,tina,180,House,10:00,5,Nonsense
