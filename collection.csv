@@ -1,0 +1,10 @@
+record_id,record_type,record_title,track_id,artist,track_title,bpm,style,runtime,rating,comment
+1,"12""","New 12""",1,Fugu,Da Fink,111,Other,05:28,2,An absolute classic.
+2,"12""","New 12""",2,Hamster,Firefly,61,Disco,5:00,1,Stinkt
+3,"7""",,3,Huga,Do You Wanna Do A Thing,80,Ambient,0:00,3,TEST
+4,"12""",Woke up this Morning,4,Hendrix,Uranus Rock,,Rock,2:45,5,Test Entry
+5,"12""","New 12""",5,Fugu,Da Fink,111,Other,05:28,2,An absolute classic.
+6,"12""","New 12""",6,Hamster,Firefly,61,Disco,5:00,1,Stinkt
+7,"7""",,7,Huga,Do You Wanna Do A Thing,80,Ambient,0:00,3,TEST
+8,"12""",Woke up this Morning,8,Hendrix,Uranus Rock,,Rock,2:45,5,Test Entry
+9,"12""",What god has joined together,9,Ebnezer Bey,Ore Oluwa akari,,Other,10:03,3,
