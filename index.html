@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vinyl Database</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 1000px; margin: 2rem auto; padding: 0 1rem; background: #f4f4f5; color: #18181b; }
+        h1 { text-align: center; color: #27272a; }
+        
+        .layout { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: start; }
+        
+        .panel { background: white; border-radius: 8px; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1.5rem; }
+        
+        /* Form Styles */
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; font-size: 0.875rem; font-weight: bold; margin-bottom: 0.25rem; }
+        input, select, textarea { width: 100%; padding: 0.5rem; border: 1px solid #d4d4d8; border-radius: 4px; box-sizing: border-box; }
+        button { background: #18181b; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 0.5rem; }
+        button:hover { background: #3f3f46; }
+        .btn-secondary { background: #e4e4e7; color: #18181b; }
+        .btn-secondary:hover { background: #d4d4d8; }
+        
+        /* CSV Actions */
+        .csv-actions { display: flex; gap: 1rem; }
+        .csv-actions form { flex: 1; display: flex; gap: 0.5rem; align-items: center; }
+
+        /* Record Cards */
+        .record-card { border: 1px solid #e4e4e7; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+        .record-header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #e4e4e7; padding-bottom: 0.5rem; margin-bottom: 0.5rem; }
+        .record-title { font-size: 1.2rem; font-weight: bold; margin: 0; }
+        .record-type { background: #18181b; color: white; padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #e4e4e7; }
+        th { color: #71717a; font-size: 0.75rem; text-transform: uppercase; }
+        .stars { color: #eab308; }
+    </style>
+</head>
+<body>
+    <h1>My Vinyl Collection</h1>
+    
+    <div class="layout">
+        <!-- LEFT COLUMN: Forms -->
+        <div>
+            <div class="panel">
+                <h3>Add New Record</h3>
+                <form id="record-form">
+                    <div class="form-group">
+                        <label>Format</label>
+                        <select id="r-type" onchange="toggleTitleState()">
+                            <option value='12"'>12" / LP</option>
+                            <option value='7"'>7" / Single</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="title-group">
+                        <label>Record Title</label>
+                        <input type="text" id="r-title" required>
+                    </div>
+                    
+                    <hr style="border:0; border-top: 1px solid #e4e4e7; margin: 1.5rem 0;">
+                    
+                    <label style="color:#71717a;">TRACK 1 DETAILS</label>
+                    <div class="form-group">
+                        <label>Track Title</label>
+                        <input type="text" id="t-title" required>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>BPM</label>
+                            <input type="number" id="t-bpm">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Style</label>
+                            <input type="text" id="t-style">
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Runtime (MM:SS)</label>
+                            <input type="text" id="t-runtime" placeholder="05:30">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Rating (1-5)</label>
+                            <input type="number" id="t-rating" min="1" max="5" value="5" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Comment</label>
+                        <textarea id="t-comment" rows="2"></textarea>
+                    </div>
+                    <button type="submit">Save Record to Database</button>
+                </form>
+            </div>
+
+            <div class="panel">
+                <h3>Data Management</h3>
+                <div class="csv-actions">
+                    <button onclick="exportCSV()" class="btn-secondary">Export to CSV</button>
+                </div>
+                <hr style="border:0; border-top: 1px solid #e4e4e7; margin: 1rem 0;">
+                <form id="import-form">
+                    <input type="file" id="csv-file" accept=".csv" required>
+                    <button type="submit" class="btn-secondary">Import CSV</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Database View -->
+        <div class="panel">
+            <h3>Collection</h3>
+            <div id="collection-container">Loading records...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000';
+
+        // 1. Fetch & Display Records (Existing functionality)
+        async function fetchRecords() {
+            try {
+                const response = await fetch(`${API_URL}/records`);
+                const records = await response.json();
+                renderRecords(records);
+            } catch (error) {
+                document.getElementById('collection-container').innerHTML = `<p style="color:red;">Error loading records.</p>`;
+            }
+        }
+
+        function renderRecords(records) {
+            const container = document.getElementById('collection-container');
+            container.innerHTML = ''; 
+            if (records.length === 0) return container.innerHTML = '<p>No records found.</p>';
+
+            records.forEach(record => {
+                const card = document.createElement('div');
+                card.className = 'record-card';
+                const title = record.title ? record.title : 'Untitled (7")';
+                
+                let tracksHTML = record.tracks.map(track => `
+                    <tr>
+                        <td><strong>${track.title}</strong><br><small style="color:#71717a">${track.comment || ''}</small></td>
+                        <td>${track.bpm || '-'}</td>
+                        <td>${track.style || '-'}</td>
+                        <td>${track.runtime || '-'}</td>
+                        <td class="stars">${'★'.repeat(track.rating)}${'☆'.repeat(5 - track.rating)}</td>
+                    </tr>
+                `).join('');
+
+                card.innerHTML = `
+                    <div class="record-header">
+                        <h2 class="record-title">${title}</h2>
+                        <span class="record-type">${record.type}</span>
+                    </div>
+                    <table>
+                        <thead><tr><th>Title</th><th>BPM</th><th>Style</th><th>Length</th><th>Rating</th></tr></thead>
+                        <tbody>${tracksHTML}</tbody>
+                    </table>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // 2. Logic to disable the Title field if 7" is selected
+        function toggleTitleState() {
+            const type = document.getElementById('r-type').value;
+            const titleGroup = document.getElementById('title-group');
+            const titleInput = document.getElementById('r-title');
+            
+            if (type === '7"') {
+                titleGroup.style.display = 'none';
+                titleInput.removeAttribute('required');
+                titleInput.value = '';
+            } else {
+                titleGroup.style.display = 'block';
+                titleInput.setAttribute('required', 'true');
+            }
+        }
+
+        // 3. Submit New Record Form
+        document.getElementById('record-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const payload = {
+                type: document.getElementById('r-type').value,
+                title: document.getElementById('r-title').value || null,
+                tracks: [{
+                    title: document.getElementById('t-title').value,
+                    bpm: parseInt(document.getElementById('t-bpm').value) || null,
+                    style: document.getElementById('t-style').value || null,
+                    runtime: document.getElementById('t-runtime').value || null,
+                    rating: parseInt(document.getElementById('t-rating').value),
+                    comment: document.getElementById('t-comment').value || null
+                }]
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/records`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (res.ok) {
+                    e.target.reset(); // clear form
+                    toggleTitleState(); // reset UI logic
+                    fetchRecords(); // Refresh data
+                } else {
+                    const err = await res.json();
+                    alert("Error: " + err.detail);
+                }
+            } catch(e) { alert("Network Error"); }
+        });
+
+        // 4. Export CSV (Opens download link natively)
+        function exportCSV() {
+            window.location.href = `${API_URL}/export`;
+        }
+
+        // 5. Import CSV
+        document.getElementById('import-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById('csv-file');
+            if (!fileInput.files[0]) return;
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const res = await fetch(`${API_URL}/import`, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (res.ok) {
+                    alert("CSV Imported Successfully!");
+                    fileInput.value = ''; // clear input
+                    fetchRecords(); // Refresh data
+                } else {
+                    alert("Error processing CSV.");
+                }
+            } catch(e) { alert("Network Error"); }
+        });
+
+        // Init
+        fetchRecords();
+    </script>
+</body>
+</html>
